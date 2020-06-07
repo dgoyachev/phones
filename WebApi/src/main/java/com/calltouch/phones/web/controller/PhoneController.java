@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@RequestMapping("/com/calltouch/phones")
+@RequestMapping("/phones")
 @Api(value = "Simple phone controller", description = "Simple phone controller description")
 public class PhoneController {
 
@@ -35,7 +35,7 @@ public class PhoneController {
         return "test";
     }
 
-    @GetMapping("list")
+    @GetMapping("/list")
     public Page<PhoneData> list(@ModelAttribute PhoneSearchCriteria criteria, Pageable pageable) {
         return phoneService.list(criteria, pageable);
     }
