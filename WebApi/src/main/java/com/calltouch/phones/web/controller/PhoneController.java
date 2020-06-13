@@ -8,10 +8,14 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 /**
  * Created by morgan on 30.05.2020
@@ -31,8 +35,10 @@ public class PhoneController {
 
     @GetMapping("/test")
     @ApiOperation(value = "Print out test string", response = String.class)
-    public String test() {
+    public String test(Principal principal) {
+        System.err.println(principal);
         return "test";
+
     }
 
     @GetMapping("/list")

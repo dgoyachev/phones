@@ -14,6 +14,7 @@
 		<version>2.3.0.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
 	<groupId>com.calltouch</groupId>
 	<artifactId>phones</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -92,11 +93,6 @@
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.9.2</version>
-		</dependency>
-		<dependency>
-			<groupId>com.calltouch</groupId>
-			<artifactId>Domain</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

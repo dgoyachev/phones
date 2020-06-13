@@ -1,9 +1,10 @@
 package com.calltouch.phones.application.config;
 
-import com.calltouch.phones.application.security.AuthenticationFilter;
-import com.calltouch.phones.application.security.AuthenticationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.calltouch.phones.application.security.CtAuthenticationFilter;
+import com.calltouch.phones.application.security.CtAuthenticationProvider;
+import com.calltouch.phones.service.AuthenticationService;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -12,8 +13,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -28,7 +27,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final AuthenticationProvider provider;
+    private final CtAuthenticationProvider provider;
+    private final AuthenticationService authenticationService;
 
     private static final RequestMatcher PROTECTED_URLS = new OrRequestMatcher(
             new AntPathRequestMatcher("/phones/**")
@@ -44,8 +44,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/webjars/**")
     );
 
-    public SecurityConfig(AuthenticationProvider provider) {
+    public SecurityConfig(CtAuthenticationProvider provider, AuthenticationService authenticationService) {
         this.provider = provider;
+        this.authenticationService = authenticationService;
     }
 
     @Override
@@ -60,51 +61,35 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.sessionManagement()
+        http
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+
                 .exceptionHandling()
                 .and()
+
                 .authenticationProvider(provider)
                 .addFilterBefore(authenticationFilter(), AnonymousAuthenticationFilter.class)
                 .authorizeRequests()
-/*
-                .antMatchers("/v2/api-docs",
-                        "/configuration/ui",
-                        "/swagger-resources/**",
-                        "/configuration/security",
-                        "/swagger-ui.html",
-                        "/webjars/**")
-                .permitAll()
-                .antMatchers("/phones/**")
-*/
-                .requestMatchers(PROTECTED_URLS)
-                .authenticated()
-                //.hasRole("USER")
+
+                .antMatchers(HttpMethod.GET,"/phones/**").hasAnyRole("ADMIN","USER")
+
+                .and()
+                .antMatcher("/phones/login")
+                .anonymous()
+
                 .and()
                 .csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
                 .logout().disable();
     }
-/*
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        PasswordEncoder encoder =
-                PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
-        auth
-                .inMemoryAuthentication()
-                .withUser("call_user")
-                .password(encoder.encode("call_user"))
-                .roles("USER");
-    }
-*/
     @Bean
-    AuthenticationFilter authenticationFilter() throws Exception {
-        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS);
+    CtAuthenticationFilter authenticationFilter() throws Exception {
+        final CtAuthenticationFilter filter = new CtAuthenticationFilter(PROTECTED_URLS, authenticationService);
         filter.setAuthenticationManager(authenticationManager());
-        //filter.setAuthenticationSuccessHandler(successHandler());
         return filter;
     }
 
